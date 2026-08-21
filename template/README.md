@@ -44,11 +44,43 @@ This project provides a Streamlit web application that:
 pip install -r requirements.txt
 ```
 
-3. Run the app:
+3. Run the original app:
 
 ```bash
 streamlit run app.py
 ```
+
+4. Run the new combined export app:
+
+```bash
+streamlit run version2.py
+```
+
+The `version2.py` app lets you edit each template and then download a single `config.zip`
+bundle containing all template CSV files.
+
+5. Run the CSV-name based app (V3):
+
+```bash
+streamlit run app_V3.py
+```
+
+The `app_V3.py` app keeps all `version2.py` features, but the template selector displays
+template names as CSV filenames.
+
+## Process Notes (App_V3)
+
+1. Created `app_V3.py` by cloning `version2.py` to preserve behavior and reduce regression risk.
+2. Updated page metadata so selector names are tied to `default_filename` values (CSV names).
+3. Added missing templates from your provided files:
+  - `WebClient_Entries.csv`
+  - `AncillaryServices.csv`
+4. Kept strict validation and per-template CSV downloads from the V2 implementation.
+5. Kept combined bundle export as `config.zip`, containing one CSV per template.
+6. Added compatibility parsing for legacy key-value CSV shapes so these upload cleanly:
+  - `JSON_TCP_Servers.csv`
+  - `MVJSON_Directory.csv`
+7. Verified the new app launches successfully with Streamlit.
 
 ## Process Notes
 
