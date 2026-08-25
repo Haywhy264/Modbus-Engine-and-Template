@@ -689,12 +689,12 @@ render_page_editor(selected_page)
 
 st.divider()
 st.subheader("Combined Config Export")
-st.caption("Combine all template entries currently in this app and download as config.zip.")
+st.caption("Combine all template entries currently in this app and download as Config.zip.")
 
 all_valid, all_errors = validate_all_templates()
 
 if all_valid:
-    st.success("All templates are valid. You can download the combined config zip.")
+    st.success("All templates are valid. You can download the combined Config zip.")
 else:
     st.warning("Some templates contain validation errors. Fix them before zip download.")
     with st.expander("Show template validation errors"):
@@ -707,9 +707,9 @@ else:
 
 zip_bytes = build_config_zip_bytes()
 st.download_button(
-    label="Download config.zip",
+    label="Download Config.zip",
     data=zip_bytes,
-    file_name="config.zip",
+    file_name="Config.zip",
     mime="application/zip",
     disabled=not all_valid,
     key="download_config_zip",

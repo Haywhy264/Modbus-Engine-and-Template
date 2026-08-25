@@ -56,7 +56,7 @@ streamlit run app.py
 streamlit run version2.py
 ```
 
-The `version2.py` app lets you edit each template and then download a single `config.zip`
+The `version2.py` app lets you edit each template and then download a single `Config.zip`
 bundle containing all template CSV files.
 
 5. Run the CSV-name based app (V3):
@@ -76,7 +76,7 @@ template names as CSV filenames.
   - `WebClient_Entries.csv`
   - `AncillaryServices.csv`
 4. Kept strict validation and per-template CSV downloads from the V2 implementation.
-5. Kept combined bundle export as `config.zip`, containing one CSV per template.
+5. Kept combined bundle export as `Config.zip`, containing one CSV per template.
 6. Added compatibility parsing for legacy key-value CSV shapes so these upload cleanly:
   - `JSON_TCP_Servers.csv`
   - `MVJSON_Directory.csv`
