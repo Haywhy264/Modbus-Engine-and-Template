@@ -68,6 +68,31 @@ streamlit run app_V3.py
 The `app_V3.py` app keeps all `version2.py` features, but the template selector displays
 template names as CSV filenames.
 
+6. Run the Box-to-Box Sync & Config Builder app (V4):
+
+```bash
+streamlit run app_V4.py
+```
+
+The `app_V4.py` app keeps all `app_V3.py` features and adds full **Box-to-Box Controller Communication**:
+- Connects to a **Source Controller** via SSH/SCP/SFTP and pulls its entire remote `Config` folder into the web app session.
+- Allows immediate browser editing across all 23 template tables with strict schema validation.
+- Pushes and deploys the verified configuration bundle to a **Target Controller** via SSH/SCP/SFTP.
+- Includes pre-deployment validation safety checks, automated remote backups, optional post-transfer service restart commands, and remote diagnostic execution.
+- Includes an **All Configs Overview & Batch Hub** with `Config.zip` import and export.
+
+## Process Notes (App_V4)
+
+1. Created `app_V4.py` preserving all 23 CSV templates, schemas, and strict validation rules from V3.
+2. Implemented `ControllerSSHBridge` with Paramiko / SCP for secure controller communication:
+   - Password and SSH Private Key (RSA/Ed25519/ECDSA) authentication.
+   - Live SSH connectivity testing and remote directory inspection.
+   - Remote config pulling into session memory with automatic template mapping.
+   - Remote deployment with directory auto-creation, automatic timestamped backup (`.tar.gz`), and optional post-transfer service restart (`systemctl restart ...`).
+3. Added a dedicated **Box-to-Box Controller Communication** dashboard with live metrics, step-by-step pull/push workflows, and audit history.
+4. Added a **Batch Config & ZIP Hub** for viewing all 23 template tables at a glance with row counts, validation states, and full `Config.zip` import/export.
+5. Retained individual template editing with dynamic tables, locked schemas, auto-numbering, single CSV downloads, and timestamped exports.
+
 ## Process Notes (App_V3)
 
 1. Created `app_V3.py` by cloning `version2.py` to preserve behavior and reduce regression risk.
