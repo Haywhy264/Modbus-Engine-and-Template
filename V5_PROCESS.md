@@ -1,43 +1,42 @@
-# Version 5 Implementation Process
+# Version 5 Implementation and Cleanup Process
 
 ## Goal
-Create a Version 5 simulator with behavior matching Version 4, scaled from 50 to 500 dummy sensor tags, and provide a compatible 500-tag Plant Tag CSV.
+Create the V5 app as a branded, site-config focused version of V4 while preserving the same CSV editing, validation, and controller sync functionality.
 
-## What Was Done
-1. Reviewed Version 4 simulator and GUI files to preserve runtime behavior.
-2. Duplicated Version 4 files into new Version 5 files.
-3. Updated core constants and metadata in the simulator:
-   - `SENSOR_COUNT` from `50` to `500`
-   - `TOTAL_REGISTERS` follows `SENSOR_COUNT`
-   - tag naming from `sensor_01..sensor_50` to `sensor_001..sensor_500`
-   - version identity strings changed from V4 to V5
-   - default port moved to `5023` to avoid conflict with existing launchers
-4. Updated GUI launcher for Version 5:
-   - now points to `modbus_meter_simulator_v5.py`
-   - default port `5023`
-   - register map label updated to 500 tags
-   - register table now displays `sensor_001..sensor_500`
-5. Added V5 batch launchers:
-   - `run_modbus_simulator_v5.bat`
-   - `run_modbus_simulator_v5_gui.bat`
-6. Added test coverage copy for v5 and updated assertions for 500-tag behavior.
-7. Generated `Plant_tag.csv` with 500 contiguous tag rows and addresses `0..499`.
+## Phase 1: V4 baseline and V5 creation
+1. Reviewed the working V4 app behavior and identified the active feature set.
+2. Copied the V4 app to a new V5 file so the functionality remained intact while the styling and labeling were adjusted.
+3. Updated the app metadata to match the new branding requirements:
+   - title changed to "Site Configuration Tool"
+   - page branding updated to the GridBeyond-style header
+   - V5 version label retained in the UI copy
+4. Kept the same table editing, validation, export, import, and SSH/SCP transfer logic from V4.
 
-## Files Added
-- `modbus_meter_simulator_v5.py`
-- `modbus_simulator_v5_gui.py`
-- `run_modbus_simulator_v5.bat`
-- `run_modbus_simulator_v5_gui.bat`
-- `tests/test_simulator_v5.py`
-- `Plant_tag.csv`
-- `V5_PROCESS.md`
+## Phase 2: Branding and logo work
+1. Added the GridBeyond logo asset to the project.
+2. Updated the V5 header to display the logo and the site configuration title.
+3. Adjusted the layout so the brand sits in the main page header instead of the sidebar.
+4. Re-tested the app after each branding update to confirm the file still rendered correctly.
 
-## Validation Approach
-- Static checks via updated tests in `tests/test_simulator_v5.py`:
-  - register map size and contiguous addresses
-  - generator output count and value bounds
-  - packed register count and uint16 bounds
+## Phase 3: SSH diagnostic terminal removal
+1. Identified the remote diagnostic terminal feature inside the V5 app.
+2. Confirmed it was a separate ad-hoc command execution tool that was not required for the core site configuration workflow.
+3. Removed the diagnostic terminal UI block from the box-to-box transfer screen.
+4. Removed the corresponding helper method from the controller bridge class to keep the application focused on config transfer and validation.
+5. Kept the source/pull and target/push SSH/SCP functionality intact because it is required for the V4-style deployment workflow.
+
+## Final V5 scope
+The final V5 app includes:
+- site configuration branding in the main page header
+- CSV template editing and validation
+- batch config overview and zip import/export
+- source controller pull and target controller push via SSH/SCP
+- removal of the remote command terminal feature
+
+## Validation performed
+- Confirmed the V5 source file compiles successfully with Python syntax checks.
+- Started Streamlit on a fresh port to verify the app launches without syntax/runtime startup failures.
 
 ## Notes
-- The new CSV keeps the same schema and defaults as `_50_Plant_Tag.csv`.
-- Tag names in v5 are zero-padded to 3 digits for consistent sorting (`sensor_001`...`sensor_500`).
+- The project uses V5 to add product branding and UI labeling without altering the underlying config workflow.
+- The remote terminal was removed intentionally to keep the app focused on configuration management rather than ad-hoc machine diagnostics.
