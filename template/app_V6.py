@@ -671,14 +671,32 @@ def validate_all_templates() -> Tuple[bool, Dict[str, Dict[int, List[str]]]]:
     return len(all_errors) == 0, all_errors
 
 
+def merge_csv_payloads(current_files: Dict[str, str], incoming_files: Dict[str, str]) -> Dict[str, str]:
+    """Merges CSV payloads while preserving every pulled file.
+
+    The push workflow should include both the in-memory session tables and any files that
+    were pulled from the source controller, even when they are unvalidated, empty, or not
+    currently represented as a template in the editor.
+    """
+    merged = dict(current_files)
+    for filename, content in incoming_files.items():
+        merged[filename] = content
+    return merged
+
+
 def get_all_template_csv_dict() -> Dict[str, str]:
-    """Generates a dict of filename -> CSV string for all 23 templates in session state."""
+    """Generates a dict of filename -> CSV string for all templates and any pulled extras."""
     csv_dict: Dict[str, str] = {}
     for page_key, config in PAGE_CONFIGS.items():
         state_key = get_state_key(page_key)
         csv_buffer = io.StringIO()
         st.session_state[state_key].to_csv(csv_buffer, index=False, lineterminator="\n")
         csv_dict[config["default_filename"]] = csv_buffer.getvalue()
+
+    pulled_payload = st.session_state.get("last_pulled_csv_payload", {})
+    if pulled_payload:
+        csv_dict = merge_csv_payloads(csv_dict, pulled_payload)
+
     return csv_dict
 
 
@@ -970,6 +988,9 @@ if "audit_logs" not in st.session_state:
 
 if "source_config_summary" not in st.session_state:
     st.session_state["source_config_summary"] = None
+
+if "last_pulled_csv_payload" not in st.session_state:
+    st.session_state["last_pulled_csv_payload"] = {}
 
 if "target_config_summary" not in st.session_state:
     st.session_state["target_config_summary"] = None
@@ -1308,12 +1329,14 @@ def render_box_to_box_view() -> None:
                         add_audit_log(
                             f"Pulled {loaded_count} config CSVs from Source Controller ({src_host}:{src_dir})"
                         )
+                        st.session_state["last_pulled_csv_payload"] = pulled_files
                         st.session_state["source_config_summary"] = {
                             "host": src_host,
                             "dir": src_dir,
                             "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                             "loaded": loaded_names,
                             "skipped": skipped,
+                            "pulled_files": list(pulled_files.keys()),
                         }
                         st.rerun()
                     else:

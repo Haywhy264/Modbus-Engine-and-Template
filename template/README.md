@@ -1,160 +1,85 @@
-# Streamlit Table Variable CSV Builder (Version 2)
+# Site Configuration Tool (V6)
 
-This project provides a Streamlit web application that:
-- accepts table variable CSV files matching seven different config schemas,
-- uses the CSV headers as fixed identifiers,
-- allows row editing in the browser,
-- validates data strictly,
-- exports a downloadable CSV with the same format.
+This application is the current browser-based configuration manager for the project. It combines CSV template editing, validation, ZIP bundle handling, and secure SSH/SFTP box-to-box transfers into a single Streamlit workflow.
 
-## What I Built
+## Overview
 
-- `app.py`
-  - Adds 21 template pages in one app:
-    `Plant_Tag`, `Plant_Node`, `MCLHB_Tags`, `MCLHYST_Tags`, `MCLHYSTDYN_Tags`,
-    `JSON_TCP_Servers`, `MCLFSM_Tags`, `MCLPROP_Tags`, `ModbusTCP_Servers`,
-    `ModbusTCP_Servers_UID`, `MVBOO_Tags`, `MVJSON_Directory`, `MVJSON_Tags`,
-    `MVPULSE_Tags`, `MVSENSOR_Tags`, `MVUSER_Tags`, `MCLIPOP_Tags`,
-    `MCLLOG_Entries`, `MCLLOG_Options`, `MCLLOG_Units`, `WebClient_Destinations`
-  - Sidebar uses a dropdown (`st.selectbox`) for 21 pages instead of a radio list
-  - Enforces exact header order and names per page
-  - Editable grid using `st.data_editor`
-  - Strict validation per template:
-    - Integer fields
-    - Float fields (where applicable)
-    - Boolean fields (`TRUE` or `FALSE`)
-    - Interval fields (`T#<number><ms|s|m|h>`)
-    - Required text fields
-    - IPv4 format for Plant_Node `IP Address`
-  - Auto-number button for `Index` (`1..N`) — only shown on pages that have an Index column
-  - Download button enabled only when validation passes
-  - Default filename download and timestamped download for each page
-  - Plant_Node inline helper with valid IP address examples
+`template/app_V6.py` is the active app entry point. It lets a user:
+- edit each CSV template in a browser using `st.data_editor`
+- keep header schemas locked to the expected format
+- validate each template with strict type and format rules
+- download individual CSV files or timestamped versions
+- export a single `Config.zip` bundle for the full configuration set
+- import a previously exported ZIP bundle back into the app
+- pull a remote config folder from a source controller
+- review and edit all templates in-session
+- push the final file set to a target controller
 
-- `requirements.txt`
-  - `streamlit`
-  - `pandas`
+## Latest V6 functionality
 
-## Setup
+- Streamlit app runs in browser mode with a local and network URL
+- Browser access is enabled with:
 
-1. Create and activate a Python environment.
-2. Install dependencies:
+```powershell
+cd "C:\Users\ayomide.adesiyan\OneDrive - Endeco-Technologies\Documents\PYTHON_WORK\Modbus Engine and Template"
+.\.venv\Scripts\Activate.ps1
+python -m streamlit run template/app_V6.py --server.address 0.0.0.0 --server.port 8501 --server.headless true
+```
 
-```bash
+- Open the app in a browser at:
+  - `http://localhost:8501`
+  - `http://<machine-ip>:8501`
+
+- Template validation includes:
+  - integer checks
+  - float/number checks
+  - boolean checks (`TRUE`/`FALSE`)
+  - interval format validation (`T#<number><ms|s|m|h>`)
+  - required text checks
+  - strict IPv4 validation for relevant fields
+
+- Template status is visible in the selector and indicates whether a file is:
+  - not uploaded
+  - validated
+  - needs validation
+
+- Each file can optionally bypass a blocking validation rule for the active session while the validation check remains active in the background.
+
+- The source controller step pulls all CSV files from a remote folder, keeps the raw content in session state, and preserves those files for deployment.
+
+- The target push step now includes all pulled files in the transfer payload, even when the files are empty, unvalidated, or not matched to a template in the current editor state.
+
+- Remote deployment supports:
+  - password auth or private-key auth
+  - directory creation
+  - optional backup before overwrite
+  - optional post-transfer command execution
+
+## Project structure
+
+- `template/app_V6.py` – active V6 application
+- `template/assets/` – branding and images
+- `tests/` – regression tests for simulator and app behavior
+- `V6_PROCESS.md` – implementation notes and release history
+
+## Quick start
+
+1. Activate the virtual environment.
+2. Install dependencies if needed:
+
+```powershell
 pip install -r requirements.txt
 ```
 
-3. Run the original app:
+3. Launch V6:
 
-```bash
-streamlit run app.py
+```powershell
+python -m streamlit run template/app_V6.py --server.address 0.0.0.0 --server.port 8501 --server.headless true
 ```
 
-4. Run the new combined export app:
+4. Open the Local URL or Network URL shown by Streamlit.
+5. Use the Box-to-Box panel to pull from source and push to target.
 
-```bash
-streamlit run version2.py
-```
+## Important latest fix
 
-The `version2.py` app lets you edit each template and then download a single `Config.zip`
-bundle containing all template CSV files.
-
-5. Run the CSV-name based app (V3):
-
-```bash
-streamlit run app_V3.py
-```
-
-The `app_V3.py` app keeps all `version2.py` features, but the template selector displays
-template names as CSV filenames.
-
-6. Run the Box-to-Box Sync & Config Builder app (V4):
-
-```bash
-streamlit run app_V4.py
-```
-
-The `app_V4.py` app keeps all `app_V3.py` features and adds full **Box-to-Box Controller Communication**:
-- Connects to a **Source Controller** via SSH/SCP/SFTP and pulls its entire remote `Config` folder into the web app session.
-- Allows immediate browser editing across all 23 template tables with strict schema validation.
-- Pushes and deploys the verified configuration bundle to a **Target Controller** via SSH/SCP/SFTP.
-- Includes pre-deployment validation safety checks, automated remote backups, optional post-transfer service restart commands, and remote diagnostic execution.
-- Includes an **All Configs Overview & Batch Hub** with `Config.zip` import and export.
-
-## Process Notes (App_V4)
-
-1. Created `app_V4.py` preserving all 23 CSV templates, schemas, and strict validation rules from V3.
-2. Implemented `ControllerSSHBridge` with Paramiko / SCP for secure controller communication:
-   - Password and SSH Private Key (RSA/Ed25519/ECDSA) authentication.
-   - Live SSH connectivity testing and remote directory inspection.
-   - Remote config pulling into session memory with automatic template mapping.
-   - Remote deployment with directory auto-creation, automatic timestamped backup (`.tar.gz`), and optional post-transfer service restart (`systemctl restart ...`).
-3. Added a dedicated **Box-to-Box Controller Communication** dashboard with live metrics, step-by-step pull/push workflows, and audit history.
-4. Added a **Batch Config & ZIP Hub** for viewing all 23 template tables at a glance with row counts, validation states, and full `Config.zip` import/export.
-5. Retained individual template editing with dynamic tables, locked schemas, auto-numbering, single CSV downloads, and timestamped exports.
-
-## Process Notes (App_V3)
-
-1. Created `app_V3.py` by cloning `version2.py` to preserve behavior and reduce regression risk.
-2. Updated page metadata so selector names are tied to `default_filename` values (CSV names).
-3. Added missing templates from your provided files:
-  - `WebClient_Entries.csv`
-  - `AncillaryServices.csv`
-4. Kept strict validation and per-template CSV downloads from the V2 implementation.
-5. Kept combined bundle export as `Config.zip`, containing one CSV per template.
-6. Added compatibility parsing for legacy key-value CSV shapes so these upload cleanly:
-  - `JSON_TCP_Servers.csv`
-  - `MVJSON_Directory.csv`
-7. Verified the new app launches successfully with Streamlit.
-
-## Process Notes
-
-1. Reviewed all 21 CSV structures and mapped each schema to validation rules.
-2. Reused the shared page engine; each new page requires only a config dict entry.
-3. Key observations per new CSV:
-   - `MCLPROP_Tags`: 6 proportional point groups (P1–P6), each with Enable/Input/Output.
-   - `ModbusTCP_Servers` / `ModbusTCP_Servers_UID`: small fixed-column tables with Index.
-   - `MVBOO_Tags`, `MVPULSE_Tags`, `MVUSER_Tags`: simple tag tables with Interval.
-   - `MVJSON_Directory`: two-row key-value config adapted to a single-row flat table; original has no standard header row.
-   - `MVJSON_Tags`: adds IPv4 validation on `Source IP`, same as Plant_Node on `IP Address`.
-   - `MVSENSOR_Tags`: 15 repeated Child column groups; pandas auto-disambiguates duplicate headers with `.1`–`.14` suffixes — config headers match this to keep upload validation working.
-   - `MCLIPOP_Tags`: proportional output controller with limit enable/value pairs.
-   - `MCLLOG_Entries` / `MCLLOG_Options` / `MCLLOG_Units`: logging config tables.
-   - `WebClient_Destinations`: two interval fields (`Interval` and `Timeout`); optional text fields (Name, URL, Username, Password) left as free-form per original data.
-4. Switched sidebar template selector from `st.radio` to `st.selectbox` — better UX for 21 options.
-5. Auto-number Index button remains conditional — only shown on pages with an `Index` column.
-
-## Thoughts (Design Rationale)
-
-1. Why one app with two pages:
-  - This keeps the user flow simple (single Streamlit entry point) while still separating the two schemas clearly.
-
-2. Why a shared page engine:
-  - All pages need the same workflow but different rules.
-  - A shared function means adding a new page requires only a new config dict — no new UI code.
-
-3. Why strict per-template validation:
-  - Different CSVs have different required and typed columns.
-  - Validating based on template configuration avoids false positives and prevents silent format drift.
-  - Plant_Node now includes strict IPv4 checking for `IP Address`.
-
-4. Why keep headers locked:
-  - Your configuration files are schema-sensitive.
-  - Exact header order/name enforcement ensures exported CSVs remain compatible.
-
-5. Why keep both download styles:
-  - Default filename supports drop-in replacement workflows.
-  - Timestamped filename prevents accidental overwrite when keeping historical snapshots.
-
-## Questions Asked During Build
-
-1. Should columns be locked to source headers?
-   - Your answer: Yes.
-2. Default filename for download?
-   - Your answer: `Plant_Tag.csv`.
-3. Validation strictness?
-   - Your answer: strict validation.
-4. Should `Index` auto-numbering be added?
-  - Your answer: yes, and it is implemented.
-5. Should a timestamped download option be added?
-  - Your answer: yes, and it is implemented.
+A recent update fixed a deployment gap: previously, the push list could omit files that had been pulled but were not currently editable in the app or were still considered invalid. The current logic merges the last pulled CSV payload with the active session tables before sending the file set to the target controller, ensuring all pulled files are transferred.
